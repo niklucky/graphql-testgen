@@ -1,26 +1,30 @@
+import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
+import { JsonFileLoader } from '@graphql-tools/json-file-loader';
 import { loadSchema } from '@graphql-tools/load';
 import { UrlLoader } from '@graphql-tools/url-loader';
 import { GraphQLField } from 'graphql';
+import { TConfigOptions } from '../types/cli';
 import {
   getInputs,
   getQueryArgs,
   getQueryFields,
   getReturnTypeFields,
   writeFile,
-} from './helper';
+} from './helpers';
 import { generateOutput } from './templates';
-
 function generateTest(
   resolver: GraphQLField<never, never, never>,
   isMutation = true,
+  config: TConfigOptions,
 ) {
+  const { append, depth, mockDir, outputDir } = config;
   const fields = getReturnTypeFields(resolver.type);
 
   let output = '';
 
   if (fields) {
     output = `{
-      ${getQueryFields(fields)}
+      ${getQueryFields(fields, depth)}
     }`;
   }
   const text = generateOutput({
@@ -35,11 +39,26 @@ function generateTest(
     },
     variables: getQueryArgs(resolver.args).join('\n'),
   });
-  writeFile(`__tests__/api/tests/generated/${resolver.name}.test.js`, text);
+  writeFile(`${outputDir}${resolver.name}.test.js`, text, append);
 }
-export default async function () {
-  const schema = await loadSchema('http://localhost:6200/graphql', {
-    loaders: [new UrlLoader()],
+
+function getSchemaType(schemaUrlOrPath: string) {
+  if (schemaUrlOrPath.endsWith('.json')) {
+    return JsonFileLoader;
+  }
+  if (schemaUrlOrPath.endsWith('.graphql')) {
+    return GraphQLFileLoader;
+  }
+  return UrlLoader;
+}
+
+export default async function (config: TConfigOptions) {
+  const { schemaPath: schemaUrlOrPath } = config;
+
+  const SchemaType = getSchemaType(schemaUrlOrPath);
+
+  const schema = await loadSchema(schemaUrlOrPath, {
+    loaders: [new SchemaType()],
   }).catch((err) => {
     throw new Error(err.message);
   });
@@ -62,6 +81,7 @@ export default async function () {
     Object.values(existingQueries.getFields()),
   ];
 
-  queries.map((resolver) => generateTest(resolver, false));
-  mutations.map((resolver) => generateTest(resolver, true));
+  queries.map((resolver) => generateTest(resolver, false, config));
+  mutations.map((resolver) => generateTest(resolver, true, config));
+  return mutations.length + queries.length;
 }

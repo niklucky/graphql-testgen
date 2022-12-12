@@ -86,8 +86,9 @@ function getValueBasedOnType(type: GraphQLInputType): string {
 function getFieldsBasedOnType(
   type: GraphQLOutputType,
   depth = 0,
+  maxDepth = MAX_DEPTH,
 ): string | null {
-  if (depth > MAX_DEPTH) return null;
+  if (depth > maxDepth) return null;
 
   if (type instanceof GraphQLScalarType) {
     return '';
@@ -96,7 +97,7 @@ function getFieldsBasedOnType(
     return '';
   }
   if (type instanceof GraphQLObjectType) {
-    if (depth + 1 > MAX_DEPTH) return null;
+    if (depth + 1 > maxDepth) return null;
     ++depth;
     return `{${Object.values(type.getFields())
       .map((field) => {
@@ -116,10 +117,10 @@ function getFieldsBasedOnType(
   }
   return '';
 }
-function getQueryFields(fields: TField) {
+function getQueryFields(fields: TField, maxDepth: number) {
   return Object.values(fields)
     .map((field) => {
-      return `${field.name} ${getFieldsBasedOnType(field.type)}`;
+      return `${field.name} ${getFieldsBasedOnType(field.type, maxDepth)}`;
     })
     .join('\n       ');
 }
@@ -140,8 +141,8 @@ function getInputs(args: readonly GraphQLArgument[], main: boolean) {
   )})`;
 }
 
-function writeFile(source: string, text: string) {
-  if (fs.existsSync(source)) {
+function writeFile(source: string, text: string, append: boolean) {
+  if (fs.existsSync(source) && append) {
     let i = 0;
     while (fs.existsSync(source)) {
       i++;

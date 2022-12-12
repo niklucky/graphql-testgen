@@ -16,10 +16,11 @@ type TGenerateOutputType = {
   outputTypes: Omit<TOutputTypesType, 'resolverName'>;
   variables: string;
 };
+
 const templates = {
-  imports: `const post = require('../../helpers/client')`,
+  imports: `const {client} = require('graphql-testgen')`,
   body: {
-    body: (body: string) => `const body = ${body}`,
+    requestBody: (body: string) => `const body = ${body}`,
     resolver: (query: string, variables: string) =>
       `{"query": \`${query}\`, "variables": \`${variables}\`}`,
     output: (data: TOutputType) =>
@@ -27,7 +28,7 @@ const templates = {
     outputTypes: (data: TOutputTypesType) =>
       `{\n${data.resolverName} ${data.inputs} ${data.output}\n}`,
     test: (resolverName: string) => `test('${resolverName} query', async () => {
-        const response = await post(body)
+        const response = await client.post(body)
         expect(response.status).toBe(200)
       })`,
   },
@@ -48,7 +49,7 @@ export const generateOutput = (data: TGenerateOutputType) => {
     [outputString, outputTypesString].join('\n'),
     variables,
   );
-  const body = templates.body.body(resolver);
+  const body = templates.body.requestBody(resolver);
   const tests = templates.body.test(resolverName);
   return [imports, body, tests].join('\n');
 };
