@@ -16,7 +16,6 @@ type TGenerateOutputType = {
   outputTypes: Omit<TOutputTypesType, 'resolverName'>;
   variables: string;
 };
-
 const templates = {
   imports: `const {client} = require('graphql-testgen')`,
   body: {

@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { Command, InvalidArgumentError, Option } from 'commander';
 import fs from 'fs';
 import { DEFAULT_CONFIG } from './constants';
