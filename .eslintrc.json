@@ -1,0 +1,15 @@
+{
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": "./tsconfig.json"
+  },
+  "plugins": ["@typescript-eslint"],
+  "extends": ["plugin:@typescript-eslint/recommended"],
+  "rules": {
+    "@typescript-eslint/consistent-type-imports": "warn",
+    "newline-before-return": "warn",
+    "newline-after-var": "warn",
+    "lines-between-class-members": "warn",
+    "eol-last": "warn"
+  }
+}
