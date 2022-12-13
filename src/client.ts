@@ -7,6 +7,7 @@ export function post(
   headers?: Record<string, string>,
 ) {
   url = url ?? getUrl();
+
   return request(url, data, 'POST', headers);
 }
 async function request(
@@ -21,6 +22,8 @@ async function request(
     data,
     headers,
   });
+
+
   return response;
 }
 export default {

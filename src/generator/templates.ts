@@ -17,11 +17,11 @@ type TGenerateOutputType = {
   variables: string;
 };
 const templates = {
-  imports: `const {client} = require('graphql-testgen')`,
+  imports: `const { client } = require('graphql-testgen')`,
   body: {
     requestBody: (body: string) => `const body = ${body}`,
     resolver: (query: string, variables: string) =>
-      `{"query": \`${query}\`, "variables": \`${variables}\`}`,
+      `{ "query":\n \`${query}\`,\n"variables": \`${variables}\`}`,
     output: (data: TOutputType) =>
       `${data.queryType} ${data.resolverName} ${data.inputs}`,
     outputTypes: (data: TOutputTypesType) =>
@@ -32,6 +32,7 @@ const templates = {
       })`,
   },
 };
+
 export const generateOutput = (data: TGenerateOutputType) => {
   const { resolverName, queryType, output, outputTypes, variables } = data;
   const imports = templates.imports;
@@ -50,5 +51,7 @@ export const generateOutput = (data: TGenerateOutputType) => {
   );
   const body = templates.body.requestBody(resolver);
   const tests = templates.body.test(resolverName);
+
+
   return [imports, body, tests].join('\n');
 };
