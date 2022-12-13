@@ -10,22 +10,39 @@ const mockFactory = {
   variables(resolverName: string, variables: any) {
     // Magic!
     const mocks = mockFactory.get(resolverName)?.variables;
+
     if (!mocks) {
       return variables;
     }
+
     return {
       ...variables,
+      ...mocks,
+    };
+  },
+  result(resolverName: string, result: any) {
+    // Magic!
+    const mocks = mockFactory.get(resolverName)?.result;
+
+    if (!mocks) {
+      return result;
+    }
+
+    return {
+      ...result,
       ...mocks,
     };
   },
 };
 
 function loadMocks(path: string) {
-  // Считываем все файлы
   const files: string[] = [];
+
   files.forEach(fileName => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const data = require(fileName);
-    for (let [resolverName, value] of Object.entries(data)) {
+
+    for (const [resolverName, value] of Object.entries(data)) {
       mockFactory.set(resolverName, value);
     }
   });

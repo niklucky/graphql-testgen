@@ -2,7 +2,10 @@
   "name": "graphql-testgen",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "bin": {
+    "graphql-testgen": "./dist/cli.js"
+  },
   "scripts": {
     "start": "node index.js",
     "dev": "ts-node index.ts",
@@ -26,8 +29,5 @@
     "@typescript-eslint/parser": "^5.43.0",
     "eslint": "^8.28.0",
     "prettier": "^2.8.0"
-  },
-  "bin": {
-    "graphql-testgen": "./dist/cli.js"
   }
 }
