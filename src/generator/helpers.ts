@@ -11,7 +11,7 @@ import {
   GraphQLObjectType,
   GraphQLOutputType,
   GraphQLScalarType,
-  GraphQLUnionType,
+  GraphQLUnionType
 } from 'graphql';
 import { DEFAULT_VERSION, MAX_DEPTH } from '../constants';
 
@@ -101,7 +101,7 @@ function getFieldsBasedOnType(
     ++depth;
     return `{${Object.values(type.getFields())
       .map((field) => {
-        const row = getFieldsBasedOnType(field.type, depth);
+        const row = getFieldsBasedOnType(field.type, depth, maxDepth);
         if (row != null) {
           return `${field.name} ${row}`;
         }
@@ -110,17 +110,17 @@ function getFieldsBasedOnType(
       .join('\n')}}`;
   }
   if (type instanceof GraphQLList) {
-    return getFieldsBasedOnType(type.ofType, depth);
+    return getFieldsBasedOnType(type.ofType, depth,maxDepth);
   }
   if (type instanceof GraphQLNonNull) {
-    return getFieldsBasedOnType(type.ofType, depth);
+    return getFieldsBasedOnType(type.ofType, depth,maxDepth);
   }
   return '';
 }
 function getQueryFields(fields: TField, maxDepth: number) {
   return Object.values(fields)
     .map((field) => {
-      return `${field.name} ${getFieldsBasedOnType(field.type, maxDepth)}`;
+      return `${field.name} ${getFieldsBasedOnType(field.type, 0, maxDepth)}`;
     })
     .join('\n       ');
 }
