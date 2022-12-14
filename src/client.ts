@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { default as axios } from 'axios';
 import { getUrl } from './config';
 
@@ -20,7 +21,10 @@ async function request(
     url: url,
     method,
     data,
-    headers,
+    headers: {
+      'Content-Type': 'application/json',
+      ...headers,
+    },
   });
 }
 export default {

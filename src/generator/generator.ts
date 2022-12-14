@@ -2,8 +2,8 @@ import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { JsonFileLoader } from '@graphql-tools/json-file-loader';
 import { loadSchema } from '@graphql-tools/load';
 import { UrlLoader } from '@graphql-tools/url-loader';
-import { GraphQLField } from 'graphql';
-import { TConfigOptions } from '../types/cli';
+import type { GraphQLField } from 'graphql';
+import type { TConfigOptions } from '../types/cli';
 import {
   getInputs,
   getQueryArgs,
@@ -15,7 +15,7 @@ import { generateOutput } from './templates';
 function generateTest(
   resolver: GraphQLField<never, never, never>,
   isMutation = true,
-  config: TConfigOptions,
+  config: TConfigOptions
 ) {
   const { append, depth, mockDir, outputDir } = config;
   const fields = getReturnTypeFields(resolver.type);
@@ -39,6 +39,7 @@ function generateTest(
     },
     variables: getQueryArgs(resolver.args).join('\n'),
   });
+
   writeFile(`${outputDir}${resolver.name}.test.js`, text, append);
 }
 
@@ -49,6 +50,7 @@ function getSchemaType(schemaUrlOrPath: string) {
   if (schemaUrlOrPath.endsWith('.graphql')) {
     return GraphQLFileLoader;
   }
+
   return UrlLoader;
 }
 
@@ -59,7 +61,7 @@ export default async function (config: TConfigOptions) {
 
   const schema = await loadSchema(schemaUrlOrPath, {
     loaders: [new SchemaType()],
-  }).catch((err) => {
+  }).catch(err => {
     throw new Error(err.message);
   });
 
@@ -81,7 +83,8 @@ export default async function (config: TConfigOptions) {
     Object.values(existingQueries.getFields()),
   ];
 
-  queries.map((resolver) => generateTest(resolver, false, config));
-  mutations.map((resolver) => generateTest(resolver, true, config));
+  queries.map(resolver => generateTest(resolver, false, config));
+  mutations.map(resolver => generateTest(resolver, true, config));
+
   return mutations.length + queries.length;
 }

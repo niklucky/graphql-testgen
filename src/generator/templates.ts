@@ -20,8 +20,9 @@ const templates = {
   imports: `const { client } = require('graphql-testgen')`,
   body: {
     requestBody: (body: string) => `const body = ${body}`,
-    resolver: (query: string, variables: string) =>
-      `{ "query":\n \`${query}\`,\n"variables": \`${variables}\`}`,
+    data: (data: string) => `const data = ${data}`,
+    resolver: (query: string) =>
+      `{ "query":\n \`${query}\`,\n"variables": data}`,
     output: (data: TOutputType) =>
       `${data.queryType} ${data.resolverName} ${data.inputs}`,
     outputTypes: (data: TOutputTypesType) =>
@@ -45,12 +46,12 @@ export const generateOutput = (data: TGenerateOutputType) => {
     resolverName,
     ...outputTypes,
   });
+  const variablesOutput = templates.body.data(variables);
   const resolver = templates.body.resolver(
-    [outputString, outputTypesString].join('\n'),
-    variables
+    [outputString, outputTypesString].join('\n')
   );
   const body = templates.body.requestBody(resolver);
   const tests = templates.body.test(resolverName);
 
-  return [imports, body, tests].join('\n');
+  return [imports, variablesOutput, body, tests].join('\n');
 };

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 const mockStorage: Map<string, { variables: any; result: any }> = new Map();
 
 const mockFactory = {

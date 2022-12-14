@@ -1,24 +1,30 @@
 import fs from 'fs';
-import {
+import type {
   GraphQLArgument,
-  GraphQLEnumType,
   GraphQLFieldMap,
-  GraphQLInputObjectType,
   GraphQLInputType,
   GraphQLInterfaceType,
+  GraphQLOutputType,
+  GraphQLUnionType,
+} from 'graphql';
+import {
+  GraphQLEnumType,
+  GraphQLInputObjectType,
   GraphQLList,
   GraphQLNonNull,
   GraphQLObjectType,
-  GraphQLOutputType,
   GraphQLScalarType,
-  GraphQLUnionType
 } from 'graphql';
-import { DEFAULT_VERSION, MAX_DEPTH } from '../constants';
+import {
+  DEFAULT_VERSION,
+  DEFAULT_VERSION_INCREMENT,
+  MAX_DEPTH,
+} from '../constants';
 
 type TField =
-  | GraphQLFieldMap<any, any>
+  | GraphQLFieldMap<unknown, unknown>
   | GraphQLScalarType<unknown, unknown>
-  | GraphQLObjectType<any, any>
+  | GraphQLObjectType<unknown, unknown>
   | GraphQLInterfaceType
   | GraphQLUnionType
   | GraphQLEnumType;
@@ -42,8 +48,8 @@ function getValueBasedOnScalar(type: GraphQLScalarType) {
   }
 }
 function getReturnTypeFields(
-  type: GraphQLOutputType,
-): GraphQLFieldMap<any, any> | '' {
+  type: GraphQLOutputType
+): GraphQLFieldMap<unknown, unknown> | '' {
   if (type instanceof GraphQLScalarType) {
     return '';
   }
@@ -59,6 +65,7 @@ function getReturnTypeFields(
   if (type instanceof GraphQLNonNull) {
     return getReturnTypeFields(type.ofType);
   }
+
   return '';
 }
 function getValueBasedOnType(type: GraphQLInputType): string {
@@ -70,7 +77,7 @@ function getValueBasedOnType(type: GraphQLInputType): string {
   }
   if (type instanceof GraphQLInputObjectType) {
     return `{${Object.values(type.getFields())
-      .map((field) => {
+      .map(field => {
         return `${field.name}: ${getValueBasedOnType(field.type)}`;
       })
       .join(',\n')}}`;
@@ -81,12 +88,13 @@ function getValueBasedOnType(type: GraphQLInputType): string {
   if (type instanceof GraphQLNonNull) {
     return getValueBasedOnType(type.ofType);
   }
+
   return 'null';
 }
 function getFieldsBasedOnType(
   type: GraphQLOutputType,
   depth = 0,
-  maxDepth = MAX_DEPTH,
+  maxDepth = MAX_DEPTH
 ): string | null {
   if (depth > maxDepth) return null;
 
@@ -99,34 +107,38 @@ function getFieldsBasedOnType(
   if (type instanceof GraphQLObjectType) {
     if (depth + 1 > maxDepth) return null;
     ++depth;
+
     return `{${Object.values(type.getFields())
-      .map((field) => {
+      .map(field => {
         const row = getFieldsBasedOnType(field.type, depth, maxDepth);
+
         if (row != null) {
           return `${field.name} ${row}`;
         }
+
         return '';
       })
       .join('\n')}}`;
   }
   if (type instanceof GraphQLList) {
-    return getFieldsBasedOnType(type.ofType, depth,maxDepth);
+    return getFieldsBasedOnType(type.ofType, depth, maxDepth);
   }
   if (type instanceof GraphQLNonNull) {
-    return getFieldsBasedOnType(type.ofType, depth,maxDepth);
+    return getFieldsBasedOnType(type.ofType, depth, maxDepth);
   }
+
   return '';
 }
 function getQueryFields(fields: TField, maxDepth: number) {
   return Object.values(fields)
-    .map((field) => {
+    .map(field => {
       return `${field.name} ${getFieldsBasedOnType(field.type, 0, maxDepth)}`;
     })
     .join('\n       ');
 }
 
 function getQueryArgs(args: readonly GraphQLArgument[]) {
-  return args.map((arg) => {
+  return args.map(arg => {
     return `${arg.name}: ${getValueBasedOnType(arg.type)}`;
   });
 }
@@ -134,31 +146,31 @@ function getInputs(args: readonly GraphQLArgument[], main: boolean) {
   if (!args.length) return '';
 
   return `(${args.map(
-    (arg) =>
+    arg =>
       `${main ? '$' : ''}${arg.name}: ${!main ? '$' : ''}${
         !main ? arg.name : arg.type
-      }`,
+      }`
   )})`;
 }
 
 function writeFile(source: string, text: string, append: boolean) {
   if (fs.existsSync(source) && append) {
-    let i = 0;
     while (fs.existsSync(source)) {
-      i++;
       if (!source.match(/(\d+)(?!.*\d)/g)) {
         const splited = source.split('/');
         const file = source.split('/')[splited.length - 1].split('.')[0];
+
         source = `${splited
           .slice(0, -1)
           .join('/')}/${file}.${DEFAULT_VERSION}.test.js`;
       }
-      source = source.replace(/(\d+)(?!.*\d)/g, (match) => {
-        return String(Number(match) + 1);
+      source = source.replace(/(\d+)(?!.*\d)/g, match => {
+        return String(Number(match) + DEFAULT_VERSION_INCREMENT);
       });
     }
   }
   const dir = source.split('/').slice(0, -1).join('/');
+
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
