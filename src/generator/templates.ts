@@ -32,6 +32,7 @@ const templates = {
       })`,
   },
 };
+
 export const generateOutput = (data: TGenerateOutputType) => {
   const { resolverName, queryType, output, outputTypes, variables } = data;
   const imports = templates.imports;
@@ -46,9 +47,10 @@ export const generateOutput = (data: TGenerateOutputType) => {
   });
   const resolver = templates.body.resolver(
     [outputString, outputTypesString].join('\n'),
-    variables,
+    variables
   );
   const body = templates.body.requestBody(resolver);
   const tests = templates.body.test(resolverName);
+
   return [imports, body, tests].join('\n');
 };
