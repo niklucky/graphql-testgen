@@ -30,6 +30,7 @@ const templates = {
     test: (resolverName: string) => `test('${resolverName} query', async () => {
         const response = await client.post(body)
         expect(response.status).toBe(200)
+        expect(response.data.data.${resolverName}).toMatchObject(data)
       })`,
   },
 };

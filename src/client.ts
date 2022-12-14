@@ -9,16 +9,16 @@ export function post(
 ) {
   url = url ?? getUrl();
 
-  return request(url, data, 'POST', headers);
+  return request(url, data, 'post', headers);
 }
 async function request(
   url: string,
   data: any,
-  method: 'POST',
+  method: 'post',
   headers?: Record<string, string>
 ) {
   return axios({
-    url: url,
+    url,
     method,
     data,
     headers: {
