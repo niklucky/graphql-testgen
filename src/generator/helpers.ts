@@ -91,6 +91,9 @@ function getValueBasedOnType(type: GraphQLInputType): string {
 
   return 'null';
 }
+function duplicate(str: string, count: number) {
+  return Array(count).fill(str).join('');
+}
 function getFieldsBasedOnType(
   type: GraphQLOutputType,
   depth = 0,
@@ -108,17 +111,21 @@ function getFieldsBasedOnType(
     if (depth + 1 > maxDepth) return null;
     ++depth;
 
-    return `{${Object.values(type.getFields())
+    return `{\n      ${Object.values(type.getFields())
       .map(field => {
         const row = getFieldsBasedOnType(field.type, depth, maxDepth);
 
         if (row != null) {
-          return `${field.name} ${row}`;
+          return `${depth >= 2 ? duplicate('  ', depth - 1) : ''}${
+            field.name
+          } ${row}`;
         }
 
         return '';
       })
-      .join('\n')}}`;
+      .join('\n      ')}\n${
+        duplicate('  ', depth+1)
+    }}`;
   }
   if (type instanceof GraphQLList) {
     return getFieldsBasedOnType(type.ofType, depth, maxDepth);
@@ -134,12 +141,12 @@ function getQueryFields(fields: TField, maxDepth: number) {
     .map(field => {
       return `${field.name} ${getFieldsBasedOnType(field.type, 0, maxDepth)}`;
     })
-    .join('\n       ');
+    .join('\n    ');
 }
 
 function getQueryArgs(args: readonly GraphQLArgument[]) {
   return args.map(arg => {
-    return `${arg.name}: ${getValueBasedOnType(arg.type)}`;
+    return `${arg.name} = ${getValueBasedOnType(arg.type)}`;
   });
 }
 function getInputs(args: readonly GraphQLArgument[], main: boolean) {

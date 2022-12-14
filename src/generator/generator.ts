@@ -24,7 +24,7 @@ function generateTest(
 
   if (fields) {
     output = `{
-      ${getQueryFields(fields, depth)}
+    ${getQueryFields(fields, depth)}
     }`;
   }
   const text = generateOutput({
