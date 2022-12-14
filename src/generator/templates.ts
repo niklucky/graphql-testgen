@@ -17,11 +17,11 @@ type TGenerateOutputType = {
   variables: string;
 };
 const templates = {
-  imports: `const {client} = require('graphql-testgen')`,
+  imports: `const { client } = require('graphql-testgen')`,
   body: {
     requestBody: (body: string) => `const body = ${body}`,
     resolver: (query: string, variables: string) =>
-      `{"query": \`${query}\`, "variables": \`${variables}\`}`,
+      `{ "query":\n \`${query}\`,\n"variables": \`${variables}\`}`,
     output: (data: TOutputType) =>
       `${data.queryType} ${data.resolverName} ${data.inputs}`,
     outputTypes: (data: TOutputTypesType) =>
