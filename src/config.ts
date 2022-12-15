@@ -12,7 +12,7 @@ let config: TConfigOptions = {
 
 export function initConfig(options?: Options) {
   loadConfig(options?.config);
-  console.log('options', options?.append);
+
   config = {
     ...config,
     ...options,

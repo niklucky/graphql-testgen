@@ -44,9 +44,8 @@ program
   )
   .option('-a, --append', 'append to existing files')
   .action(async (options: Options) => {
-    console.log(options)
     initConfig(options);
-    console.log(getConfig());
+
     console.log('Generating tests...');
     const generatedTests = await generator(getConfig());
 
