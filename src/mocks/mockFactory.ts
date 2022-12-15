@@ -1,15 +1,19 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-const mockStorage: Map<string, { variables: any; result: any }> = new Map();
+type GraphqlMock = {
+  variables: Record<string, unknown>,
+  result: Record<string, unknown>
+}
+
+const mockStorage: Map<string, GraphqlMock> = new Map();
+
 
 const mockFactory = {
   get(resolverName: string) {
     return mockStorage.get(resolverName);
   },
-  set(resolverName: string, value: any) {
+  set(resolverName: string, value: GraphqlMock) {
     return mockStorage.set(resolverName, value);
   },
-  variables(resolverName: string, variables: any) {
-    // Magic!
+  variables(resolverName: string, variables: Record<string, unknown>) {
     const mocks = mockFactory.get(resolverName)?.variables;
 
     if (!mocks) {
@@ -21,8 +25,7 @@ const mockFactory = {
       ...mocks,
     };
   },
-  result(resolverName: string, result: any) {
-    // Magic!
+  result(resolverName: string, result: Record<string, unknown>) {
     const mocks = mockFactory.get(resolverName)?.result;
 
     if (!mocks) {
@@ -44,7 +47,7 @@ function loadMocks(path: string) {
     const data = require(fileName);
 
     for (const [resolverName, value] of Object.entries(data)) {
-      mockFactory.set(resolverName, value);
+      mockFactory.set(resolverName, value as GraphqlMock);
     }
   });
 }

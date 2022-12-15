@@ -1,6 +1,8 @@
 import fs from 'fs';
 import type { Options, TConfigOptions } from "./types/cli";
 
+let isInitialized = false
+
 let config: TConfigOptions = {
   targetUrl: process.env.TARGET_URL || 'http://localhost:3000/graphql',
   schema: 'http://localhost:3000/graphql',
@@ -17,6 +19,7 @@ export function initConfig(options?: Options) {
     ...config,
     ...options
   }
+  isInitialized = true
 }
 
 // 1. defaultConfig
@@ -24,6 +27,10 @@ export function initConfig(options?: Options) {
 // 3. options
 
 export function getConfig(): TConfigOptions {
+  if (!isInitialized) {
+    initConfig()
+  }
+
   return config
 }
 
@@ -37,7 +44,7 @@ function loadConfig(path?: string) {
   if (!path) {
     path = process.cwd() + '/testgen.js'
   }
-  console.log('path', path);
+  // console.log('path', path);
   if (fs.existsSync(path)) {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const externalConfig = require(path);
