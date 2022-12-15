@@ -29,12 +29,7 @@ program
     optionsParseUrlOrFile,
     undefined
   )
-  .option(
-    '-o, --output <path>',
-    'path to output',
-    optionsParseDir,
-    undefined
-  )
+  .option('-o, --output <path>', 'path to output', optionsParseDir, undefined)
   .option(
     '-m, --mocks <path>',
     'path to mock directory',
@@ -47,14 +42,9 @@ program
     optionsParseInt,
     4
   )
-  .addOption(
-    new Option('-a, --append', 'append to existing files')
-      .choices(['true', 'false'])
-      .default('true')
-  )
+  .option('-a, --append', 'append to existing files')
   .action(async (options: Options) => {
-
-    initConfig(options)
+    initConfig(options);
 
     console.log('Generating tests...');
     const generatedTests = await generator(getConfig());
@@ -62,26 +52,20 @@ program
     console.log('Tests generated! 🎉\n Total: ' + generatedTests);
   });
 
-
 program
   .command('clear')
-  .option(
-    '-t, --test <name>',
-    'path to test file'
-  )
-  .addOption(
-    new Option('-a, --all', 'delete all in config path')
-  )
+  .option('-t, --test <name>', 'path to test file')
+  .addOption(new Option('-a, --all', 'delete all in config path'))
   .action((options: TClearOptions) => {
-    initConfig()
-    const path = process.cwd() + '/' + getConfig().output
+    initConfig();
+    const path = process.cwd() + '/' + getConfig().output;
 
-    if (options.all) {
+    if (Boolean(options.all)) {
       if (fs.existsSync(path)) {
         fs.rmSync(path, { recursive: true });
       }
     } else {
-      const filePath = path + '/' + options.test
+      const filePath = path + '/' + options.test;
 
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
@@ -110,10 +94,10 @@ function optionsParseDir(value: string) {
 function optionsParseUrlOrFile(value: string) {
   if (value) {
     if (value.startsWith('http')) {
-      return value
+      return value;
     }
     if (fs.readFileSync(value)) {
-      return value
+      return value;
     }
   }
   throw new InvalidArgumentError('Not a url or file.');
