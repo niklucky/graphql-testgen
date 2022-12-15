@@ -78,13 +78,13 @@ function getValueBasedOnType(type: GraphQLInputType, depth = 0): string {
   if (type instanceof GraphQLInputObjectType) {
     ++depth;
 
-    return `{\n      ${Object.values(type.getFields())
+    return `{\n    ${Object.values(type.getFields())
       .map(field => {
-        return `${depth >= 2 ? duplicate('  ', depth - 1) : ''}${
+        return `${depth >= 2 ? duplicate('  ', depth ) : ''}${
           field.name
         }: ${getValueBasedOnType(field.type)}`;
       })
-      .join(',\n      ')}\n${duplicate('  ', depth + 1)}}`;
+      .join(',\n      ')}\n${duplicate('  ', depth)}}`;
   }
   if (type instanceof GraphQLList) {
     return getValueBasedOnType(type.ofType);

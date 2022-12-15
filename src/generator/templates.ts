@@ -28,7 +28,8 @@ const templates = {
   body: (data: TGenerateBody) => `
 const { client } = require('graphql-testgen')
 
-const data = {${data.data
+const data = {
+  ${data.data
   .map(item => {
     if (item) {
       return `${item[0]}: ${item[1]},`;
@@ -45,7 +46,7 @@ ${data.queryType} ${data.resolverName}${data.inputs} {
   ${data.resolverName} ${data.outputInputs}${data.output}
   }
   \`,
-  "variables": data
+  ${data.data.length > 0 ? '"variables": data' : ''}
 }
 
 test('${data.resolverName} query', async () => {

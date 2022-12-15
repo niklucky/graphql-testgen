@@ -1,5 +1,5 @@
 import fs from 'fs';
-import type { Options, TConfigOptions } from "./types/cli";
+import type { Options, TConfigOptions } from './types/cli';
 
 let config: TConfigOptions = {
   targetUrl: process.env.TARGET_URL || 'http://localhost:3000/graphql',
@@ -11,12 +11,13 @@ let config: TConfigOptions = {
 };
 
 export function initConfig(options?: Options) {
-  loadConfig(options?.config)
-
+  loadConfig(options?.config);
+  console.log('options', options?.append);
   config = {
     ...config,
-    ...options
-  }
+    ...options,
+    append: Boolean(options?.append) || config.append,
+  };
 }
 
 // 1. defaultConfig
@@ -24,18 +25,18 @@ export function initConfig(options?: Options) {
 // 3. options
 
 export function getConfig(): TConfigOptions {
-  return config
+  return config;
 }
 
 function loadConfig(path?: string) {
   if (path) {
     if (!path.startsWith('/')) {
-      path = '/' + path
+      path = '/' + path;
     }
-    path = process.cwd() + path
+    path = process.cwd() + path;
   }
   if (!path) {
-    path = process.cwd() + '/testgen.js'
+    path = process.cwd() + '/testgen.js';
   }
   console.log('path', path);
   if (fs.existsSync(path)) {
@@ -44,7 +45,7 @@ function loadConfig(path?: string) {
 
     config = {
       ...config,
-      ...externalConfig
-    }
+      ...externalConfig,
+    };
   }
 }
