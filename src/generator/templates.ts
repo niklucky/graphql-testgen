@@ -14,7 +14,7 @@ type TGenerateOutputType = {
   queryType: TQueryType;
   output: Omit<TOutputType, 'resolverName' | 'queryType'>;
   outputTypes: Omit<TOutputTypesType, 'resolverName'>;
-  variables: string;
+  variables: ([string, string] | undefined)[];
 };
 type TGenerateBody = {
   resolverName: string;
@@ -22,13 +22,22 @@ type TGenerateBody = {
   inputs?: string;
   outputInputs?: string;
   output?: string;
-  data: string;
+  data: ([string, string] | undefined)[];
 };
 const templates = {
   body: (data: TGenerateBody) => `
 const { client } = require('graphql-testgen')
 
-${data.data}
+const data = {${data.data
+  .map(item => {
+    if (item) {
+      return `${item[0]}: ${item[1]},`;
+    }
+
+    return '';
+  })
+  .join('')}
+}
 const body = { 
   "query": 
 \`

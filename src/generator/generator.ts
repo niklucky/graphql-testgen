@@ -28,6 +28,9 @@ function generateTest(
     ${getQueryFields(fields, depth)}
     }`;
   }
+  
+  const variables = getQueryArgs(resolver.args)
+
   const generatedTest = generateOutput({
     resolverName: resolver.name,
     queryType: isMutation ? 'mutation' : 'query',
@@ -38,7 +41,7 @@ function generateTest(
       inputs: getInputs(resolver.args, false),
       output: graphqlField,
     },
-    variables: getQueryArgs(resolver.args).join('\n'),
+    variables,
   });
 
   writeFile(`${output}${resolver.name}.test.js`, generatedTest, append);

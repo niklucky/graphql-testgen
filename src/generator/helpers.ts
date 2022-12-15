@@ -68,7 +68,7 @@ function getReturnTypeFields(
 
   return '';
 }
-function getValueBasedOnType(type: GraphQLInputType): string {
+function getValueBasedOnType(type: GraphQLInputType, depth = 0): string {
   if (type instanceof GraphQLScalarType) {
     return getValueBasedOnScalar(type);
   }
@@ -76,11 +76,15 @@ function getValueBasedOnType(type: GraphQLInputType): string {
     return `"${type.getValues()[0].value}"`;
   }
   if (type instanceof GraphQLInputObjectType) {
-    return `{${Object.values(type.getFields())
+    ++depth;
+
+    return `{\n      ${Object.values(type.getFields())
       .map(field => {
-        return `${field.name}: ${getValueBasedOnType(field.type)}`;
+        return `${depth >= 2 ? duplicate('  ', depth - 1) : ''}${
+          field.name
+        }: ${getValueBasedOnType(field.type)}`;
       })
-      .join(',\n')}}`;
+      .join(',\n      ')}\n${duplicate('  ', depth + 1)}}`;
   }
   if (type instanceof GraphQLList) {
     return getValueBasedOnType(type.ofType);
@@ -123,9 +127,7 @@ function getFieldsBasedOnType(
 
         return '';
       })
-      .join('\n      ')}\n${
-        duplicate('  ', depth+1)
-    }}`;
+      .join('\n      ')}\n${duplicate('  ', depth + 1)}}`;
   }
   if (type instanceof GraphQLList) {
     return getFieldsBasedOnType(type.ofType, depth, maxDepth);
@@ -144,9 +146,11 @@ function getQueryFields(fields: TField, maxDepth: number) {
     .join('\n    ');
 }
 
-function getQueryArgs(args: readonly GraphQLArgument[]) {
+function getQueryArgs(
+  args: readonly GraphQLArgument[]
+): ([string, string] | undefined)[] {
   return args.map(arg => {
-    return `${arg.name} = ${getValueBasedOnType(arg.type)}`;
+    return [arg.name, getValueBasedOnType(arg.type)];
   });
 }
 function getInputs(args: readonly GraphQLArgument[], main: boolean) {
