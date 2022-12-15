@@ -1,7 +1,7 @@
 import fs from 'fs';
 import type { Options, TConfigOptions } from "./types/cli";
 
-const isInitialized = false
+let isInitialized = false
 
 let config: TConfigOptions = {
   targetUrl: process.env.TARGET_URL || 'http://localhost:3000/graphql',
@@ -19,6 +19,7 @@ export function initConfig(options?: Options) {
     ...config,
     ...options
   }
+  isInitialized = true
 }
 
 // 1. defaultConfig
