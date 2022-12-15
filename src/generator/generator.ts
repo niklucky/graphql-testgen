@@ -9,25 +9,26 @@ import {
   getQueryArgs,
   getQueryFields,
   getReturnTypeFields,
-  writeFile,
+  writeFile
 } from './helpers';
 import { generateOutput } from './templates';
+
 function generateTest(
   resolver: GraphQLField<never, never, never>,
   isMutation = true,
   config: TConfigOptions
 ) {
-  const { append, depth, mockDir, outputDir } = config;
+  const { append, depth, mocks, output } = config;
   const fields = getReturnTypeFields(resolver.type);
 
-  let output = '';
+  let graphqlField = '';
 
   if (fields) {
-    output = `{
+    graphqlField = `{
     ${getQueryFields(fields, depth)}
     }`;
   }
-  const text = generateOutput({
+  const generatedTest = generateOutput({
     resolverName: resolver.name,
     queryType: isMutation ? 'mutation' : 'query',
     output: {
@@ -35,12 +36,12 @@ function generateTest(
     },
     outputTypes: {
       inputs: getInputs(resolver.args, false),
-      output: output,
+      output: graphqlField,
     },
     variables: getQueryArgs(resolver.args).join('\n'),
   });
 
-  writeFile(`${outputDir}${resolver.name}.test.js`, text, append);
+  writeFile(`${output}${resolver.name}.test.js`, generatedTest, append);
 }
 
 function getSchemaType(schemaUrlOrPath: string) {
@@ -55,7 +56,7 @@ function getSchemaType(schemaUrlOrPath: string) {
 }
 
 export default async function (config: TConfigOptions) {
-  const { schemaPath: schemaUrlOrPath } = config;
+  const { schema: schemaUrlOrPath } = config;
 
   const SchemaType = getSchemaType(schemaUrlOrPath);
 

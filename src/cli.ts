@@ -2,41 +2,41 @@
 
 import { Command, InvalidArgumentError, Option } from 'commander';
 import fs from 'fs';
-import { DEFAULT_CONFIG } from './constants';
+import { getConfig, initConfig } from './config';
 import generator from './generator/generator';
-import type { Options, TConfigOptions } from './types/cli';
+import type { Options } from './types/cli';
 
 const program = new Command('graphql-testgen');
 
 program
-  .version('0.0.1')
+  .version('0.0.2')
   .description(
     'GraphQL Test Generator CLI Tool for Node.js and TypeScript projects with Jest support.'
   )
   .showHelpAfterError();
 
 program
-  .command('generate')
+  .command('gen')
   .option(
-    '-c, --configPath <path>',
+    '-c, --config <path>',
     'path to config file',
     optionsParseDir,
     undefined
   )
   .option(
-    '-s, --schemaPath <path>',
+    '-s, --schema <path>',
     'path to schema file or url path to schema',
     optionsParseUrlOrFile,
     undefined
   )
   .option(
-    '-o, --outputPath <path>',
+    '-o, --output <path>',
     'path to output',
     optionsParseDir,
     undefined
   )
   .option(
-    '-m, --mockDir <path>',
+    '-m, --mocks <path>',
     'path to mock directory',
     optionsParseDir,
     undefined
@@ -53,22 +53,17 @@ program
       .default('true')
   )
   .action(async (options: Options) => {
-    const config = options.configPath
-      ? parseConfig(options.configPath)
-      : options;
-    const parsedConfig = {
-      ...DEFAULT_CONFIG,
-      ...config,
-    } as TConfigOptions;
 
-    console.log(parsedConfig);
+    initConfig(options)
+
     console.log('Generating tests...');
-    const generatedTests = await generator(parsedConfig);
+    const generatedTests = await generator(getConfig());
 
     console.log('Tests generated! 🎉\n Total: ' + generatedTests);
   });
 
 program.parse();
+
 function optionsParseInt(value: string) {
   const parsedValue = parseInt(value, 10);
 
@@ -86,17 +81,15 @@ function optionsParseDir(value: string) {
 }
 
 function optionsParseUrlOrFile(value: string) {
-  if (
-    value &&
-    (fs.readFileSync(value) ||
-      value.startsWith('http') ||
-      value.startsWith('https'))
-  ) {
-    return value;
+  if (value) {
+    if (value.startsWith('http')) {
+      return value
+    }
+    if (fs.readFileSync(value)) {
+      return value
+    }
   }
   throw new InvalidArgumentError('Not a url or file.');
 }
-function parseConfig(config: string): TConfigOptions {
-  return JSON.parse(fs.readFileSync(config, 'utf8'));
-}
+
 //clear

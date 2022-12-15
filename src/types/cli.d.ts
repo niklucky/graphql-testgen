@@ -1,9 +1,10 @@
 export type Options = {
-  configPath?: string;
-  schemaPath?: string;
-  outputDir?: string;
-  mockDir?: string;
+  targetUrl: string
+  config?: string;
+  schema?: string;
+  output?: string;
+  mocks?: string;
   depth?: number;
   append: boolean;
 };
-export type TConfigOptions = Required<Omit<Options, 'configPath'>>;
+export type TConfigOptions = Required<Omit<Options, 'config'>>;

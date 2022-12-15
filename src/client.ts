@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { default as axios } from 'axios';
-import { getUrl } from './config';
+import { getConfig } from './config';
 
 export function post(
   data: any,
   url?: string,
   headers?: Record<string, string>
 ) {
-  url = url ?? getUrl();
+  url = url ?? getConfig().targetUrl;
 
   return request(url, data, 'post', headers);
 }
