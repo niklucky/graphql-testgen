@@ -10,8 +10,8 @@ let config: TConfigOptions = {
   append: false,
 };
 
-export function initConfig(options: Options) {
-  loadConfig(options.config)
+export function initConfig(options?: Options) {
+  loadConfig(options?.config)
 
   config = {
     ...config,

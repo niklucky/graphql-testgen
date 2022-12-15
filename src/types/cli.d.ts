@@ -8,3 +8,8 @@ export type Options = {
   append: boolean;
 };
 export type TConfigOptions = Required<Omit<Options, 'config'>>;
+
+type TClearOptions = {
+  all: boolean;
+  test: string;
+};
