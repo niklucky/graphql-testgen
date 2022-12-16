@@ -1,10 +1,10 @@
 type GraphqlMock = {
   variables: Record<string, unknown>,
-  result: Record<string, unknown>
+  expected: Record<string, unknown>
+  test: (data: unknown) => void
 }
 
-const mockStorage: Map<string, GraphqlMock> = new Map();
-
+let mockStorage: Map<string, GraphqlMock> = new Map();
 
 const mockFactory = {
   get(resolverName: string) {
@@ -25,31 +25,40 @@ const mockFactory = {
       ...mocks,
     };
   },
-  result(resolverName: string, result: Record<string, unknown>) {
-    const mocks = mockFactory.get(resolverName)?.result;
+  expected(resolverName: string, data: Record<string, unknown>) {
+    const expected = mockFactory.get(resolverName)?.expected;
 
-    if (!mocks) {
-      return result;
+    if (!expected) {
+      return data;
     }
 
     return {
-      ...result,
-      ...mocks,
+      ...expected,
+      ...data,
     };
   },
+  test(resolverName: string) {
+    return mockFactory.get(resolverName)?.test;
+  },
+
+  init(mocks: Record<string, GraphqlMock>) {
+    mockStorage = new Map(Object.entries(mocks))
+
+    return mockFactory
+  }
 };
 
-function loadMocks(path: string) {
-  const files: string[] = [];
+// function load(path: string) {
+//   const files: string[] = [];
 
-  files.forEach(fileName => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const data = require(fileName);
+//   files.forEach(fileName => {
+//     // eslint-disable-next-line @typescript-eslint/no-var-requires
+//     const data = require(fileName);
 
-    for (const [resolverName, value] of Object.entries(data)) {
-      mockFactory.set(resolverName, value as GraphqlMock);
-    }
-  });
-}
+//     for (const [resolverName, value] of Object.entries(data)) {
+//       mockFactory.set(resolverName, value as GraphqlMock);
+//     }
+//   });
+// }
 
-export { mockFactory, loadMocks };
+export { mockFactory };
