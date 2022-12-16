@@ -5,7 +5,7 @@ import type {
   GraphQLInputType,
   GraphQLInterfaceType,
   GraphQLOutputType,
-  GraphQLUnionType
+  GraphQLUnionType,
 } from 'graphql';
 import {
   GraphQLEnumType,
@@ -13,12 +13,12 @@ import {
   GraphQLList,
   GraphQLNonNull,
   GraphQLObjectType,
-  GraphQLScalarType
+  GraphQLScalarType,
 } from 'graphql';
 import {
   DEFAULT_VERSION,
   DEFAULT_VERSION_INCREMENT,
-  MAX_DEPTH
+  MAX_DEPTH,
 } from '../constants';
 
 type TField =
@@ -28,6 +28,33 @@ type TField =
   | GraphQLInterfaceType
   | GraphQLUnionType
   | GraphQLEnumType;
+
+export function getTypeBasedOnScalar(
+  type: GraphQLScalarType
+): string | undefined {
+  if (type instanceof GraphQLList) {
+    return getTypeBasedOnScalar(type.ofType);
+  }
+  if (type instanceof GraphQLNonNull) {
+    return getTypeBasedOnScalar(type.ofType);
+  }
+  switch (type.name) {
+    case 'String':
+      return 'String';
+    case 'Int':
+      return 'Number';
+    case 'Float':
+      return 'Number';
+    case 'Boolean':
+      return 'Boolean';
+    case 'ID':
+      return 'String';
+    case 'DateTime':
+      return 'Date';
+    default:
+      return undefined;
+  }
+}
 
 function getValueBasedOnScalar(type: GraphQLScalarType) {
   switch (type.name) {
@@ -80,16 +107,17 @@ function getValueBasedOnType(type: GraphQLInputType, depth = 0): string {
 
     return `{\n    ${Object.values(type.getFields())
       .map(field => {
-        return `${depth >= 2 ? duplicate('  ', depth) : ''}${field.name
-          }: ${getValueBasedOnType(field.type)}`;
+        return `${depth >= 2 ? duplicate('  ', depth) : '  '}${
+          field.name
+        }: ${getValueBasedOnType(field.type, depth)}`;
       })
-      .join(',\n      ')}\n${duplicate('  ', depth)}}`;
+      .join(',\n    ')}\n${duplicate('  ', depth + 1)}}`;
   }
   if (type instanceof GraphQLList) {
-    return getValueBasedOnType(type.ofType);
+    return getValueBasedOnType(type.ofType, depth);
   }
   if (type instanceof GraphQLNonNull) {
-    return getValueBasedOnType(type.ofType);
+    return getValueBasedOnType(type.ofType, depth);
   }
 
   return 'null';
@@ -119,8 +147,9 @@ function getFieldsBasedOnType(
         const row = getFieldsBasedOnType(field.type, depth, maxDepth);
 
         if (row != null) {
-          return `${depth >= 2 ? duplicate('  ', depth - 1) : ''}${field.name
-            } ${row}`;
+          return `${depth >= 2 ? duplicate('  ', depth - 1) : ''}${
+            field.name
+          } ${row}`;
         }
 
         return '';
@@ -156,7 +185,8 @@ function getInputs(args: readonly GraphQLArgument[], main: boolean) {
 
   return `(${args.map(
     arg =>
-      `${main ? '$' : ''}${arg.name}: ${!main ? '$' : ''}${!main ? arg.name : arg.type
+      `${main ? '$' : ''}${arg.name}: ${!main ? '$' : ''}${
+        !main ? arg.name : arg.type
       }`
   )})`;
 }
@@ -164,7 +194,7 @@ function getInputs(args: readonly GraphQLArgument[], main: boolean) {
 function writeFile(source: string, text: string, append: boolean) {
   if (fs.existsSync(source)) {
     if (!append) {
-      return
+      return;
     }
     while (fs.existsSync(source)) {
       if (!source.match(/(\d+)(?!.*\d)/g)) {

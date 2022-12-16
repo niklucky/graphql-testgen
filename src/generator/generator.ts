@@ -9,7 +9,7 @@ import {
   getQueryArgs,
   getQueryFields,
   getReturnTypeFields,
-  writeFile
+  writeFile,
 } from './helpers';
 import { generateOutput } from './templates';
 
@@ -21,7 +21,7 @@ function generateTest(
   const { append, depth, output } = config;
   const fields = getReturnTypeFields(resolver.type);
 
-  let graphqlField = '';
+  let graphqlField = undefined;
 
   if (fields) {
     graphqlField = `{
@@ -29,7 +29,7 @@ function generateTest(
     }`;
   }
 
-  const variables = getQueryArgs(resolver.args)
+  const variables = getQueryArgs(resolver.args);
 
   const generatedTest = generateOutput({
     resolverName: resolver.name,
@@ -39,12 +39,16 @@ function generateTest(
     },
     outputTypes: {
       inputs: getInputs(resolver.args, false),
-      output: graphqlField,
+      output: graphqlField ?? resolver.type,
     },
     variables,
   });
 
-  writeFile(`${output}${resolver.name}.test.js`, generatedTest, append);
+  writeFile(
+    `${output}.${isMutation ? 'mutation' : 'query'}.${resolver.name}.test.js`,
+    generatedTest,
+    append
+  );
 }
 
 function getSchemaType(schemaUrlOrPath: string) {

@@ -1,3 +1,6 @@
+import type { GraphQLOutputType, GraphQLScalarType } from 'graphql';
+import { getTypeBasedOnScalar } from './helpers';
+
 type TQueryType = 'query' | 'mutation';
 type TOutputType = {
   resolverName: string;
@@ -7,7 +10,7 @@ type TOutputType = {
 type TOutputTypesType = {
   resolverName: string;
   inputs?: string;
-  output?: string;
+  output?: string | GraphQLOutputType;
 };
 type TGenerateOutputType = {
   resolverName: string;
@@ -21,7 +24,7 @@ type TGenerateBody = {
   queryType: TQueryType;
   inputs?: string;
   outputInputs?: string;
-  output?: string;
+  output?: string | GraphQLOutputType;
   data: ([string, string] | undefined)[];
 };
 const templates = {
@@ -31,21 +34,24 @@ const { client } = require('graphql-testgen')
 const variables = global.mockFactory.variables(
   '${data.resolverName}',
   {
-  ${data.data.map(item => {
-    if (item) {
-      return `  ${item[0]}: ${item[1]},`;
-    }
+  ${data.data
+    .map(item => {
+      if (item) {
+        return `  ${item[0]}: ${item[1]},`;
+      }
 
-    return '';
-  })
-      .join('')}
+      return '';
+    })
+    .join('')}
   }
 )
 const body = { 
   "query": 
 \`
 ${data.queryType} ${data.resolverName}${data.inputs} {
-  ${data.resolverName} ${data.outputInputs}${data.output}
+  ${data.resolverName} ${data.outputInputs}${
+    typeof data.output == 'string' ? data.output : ''
+  }
   }
   \`,
   ${data.data.length > 0 ? 'variables' : ''}
@@ -54,7 +60,9 @@ ${data.queryType} ${data.resolverName}${data.inputs} {
 test('${data.queryType}:${data.resolverName}', async () => {
   const response = await client.post(body, undefined, global.headers);
   const testOverride = global.mockFactory.test('${data.resolverName}');
-  const expected = global.mockFactory.expected('${data.resolverName}', variables);
+  const expected = global.mockFactory.expected('${
+    data.resolverName
+  }', variables);
 
   if (testOverride) {
     testOverride(response, expected, expect);
@@ -62,13 +70,23 @@ test('${data.queryType}:${data.resolverName}', async () => {
   }
 
   expect(response.status).toBe(200)
-  expect(response.data.data.${data.resolverName}).toMatchObject(expected)
+  ${
+    typeof data.output != 'string'
+      ? `expect(response.data.data.${
+          data.resolverName
+        }).toEqual(expect.any(${getTypeBasedOnScalar(
+          data.output as GraphQLScalarType
+        )}))`
+      : `expect(response.data.data.${data.resolverName}).toMatchObject(expected)`
+  }
+  
 })
   `,
 };
 
 export const generateOutput = (data: TGenerateOutputType) => {
   const { resolverName, queryType, output, outputTypes, variables } = data;
+
   const body = templates.body({
     data: variables,
     resolverName,
