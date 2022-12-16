@@ -7,7 +7,7 @@ let config: TConfigOptions = {
   targetUrl: process.env.TARGET_URL || 'http://localhost:3000/graphql',
   schema: 'http://localhost:3000/graphql',
   output: 'tests/generated/',
-  mocks: 'mocks/',
+  mocks: {},
   depth: 4,
   append: false,
 };
@@ -20,6 +20,8 @@ export function initConfig(options?: Options) {
     ...options
   }
   isInitialized = true
+
+  return config
 }
 
 // 1. defaultConfig

@@ -29,29 +29,28 @@ type TGenerateBody = {
 };
 const templates = {
   body: (data: TGenerateBody) => `
-const { client } = require('graphql-testgen')
+const { client, mockFactory } = require('graphql-testgen')
 
-const variables = global.mockFactory.variables(
+const variables = mockFactory.variables(
   '${data.resolverName}',
   {
   ${data.data
-    .map(item => {
-      if (item) {
-        return `  ${item[0]}: ${item[1]},`;
-      }
+      .map(item => {
+        if (item) {
+          return `  ${item[0]}: ${item[1]},`;
+        }
 
-      return '';
-    })
-    .join('')}
+        return '';
+      })
+      .join('')}
   }
 )
 const body = { 
   "query": 
 \`
 ${data.queryType} ${data.resolverName}${data.inputs} {
-  ${data.resolverName} ${data.outputInputs}${
-    typeof data.output == 'string' ? data.output : ''
-  }
+  ${data.resolverName} ${data.outputInputs}${typeof data.output == 'string' ? data.output : ''
+    }
   }
   \`,
   ${data.data.length > 0 ? 'variables' : ''}
@@ -59,26 +58,31 @@ ${data.queryType} ${data.resolverName}${data.inputs} {
 
 test('${data.queryType}:${data.resolverName}', async () => {
   const response = await client.post(body, undefined, global.headers);
-  const testOverride = global.mockFactory.test('${data.resolverName}');
-  const expected = global.mockFactory.expected('${
-    data.resolverName
-  }', variables);
+  const testOverride = mockFactory.test('${data.resolverName}');
+  const expected = mockFactory.expected('${data.resolverName
+    }', variables);
 
   if (testOverride) {
     testOverride(response, expected, expect);
     return;
   }
+  
+  let data = null
+  try {
+    data = response.data.data.${data.resolverName}
+  } catch (e) {
+    console.log(e)
+    console.log('Response:', response.data)
+  }
 
   expect(response.status).toBe(200)
-  ${
-    typeof data.output != 'string'
-      ? `expect(response.data.data.${
-          data.resolverName
-        }).toEqual(expect.any(${getTypeBasedOnScalar(
-          data.output as GraphQLScalarType
-        )}))`
-      : `expect(response.data.data.${data.resolverName}).toMatchObject(expected)`
-  }
+  ${typeof data.output != 'string'
+      ? `expect(response.data.data.${data.resolverName
+      }).toEqual(expect.any(${getTypeBasedOnScalar(
+        data.output as GraphQLScalarType
+      )}))`
+      : `expect(data).toMatchObject(expected)`
+    }
   
 })
   `,

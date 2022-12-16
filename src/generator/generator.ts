@@ -9,7 +9,7 @@ import {
   getQueryArgs,
   getQueryFields,
   getReturnTypeFields,
-  writeFile,
+  writeFile
 } from './helpers';
 import { generateOutput } from './templates';
 
@@ -45,7 +45,7 @@ function generateTest(
   });
 
   writeFile(
-    `${output}.${isMutation ? 'mutation' : 'query'}.${resolver.name}.test.js`,
+    `${output}${isMutation ? 'mutation' : 'query'}.${resolver.name}.test.js`,
     generatedTest,
     append
   );
@@ -91,8 +91,12 @@ export default async function (config: TConfigOptions) {
     Object.values(existingQueries.getFields()),
   ];
 
-  queries.map(resolver => generateTest(resolver, false, config));
-  mutations.map(resolver => generateTest(resolver, true, config));
+  function specific(resolver: GraphQLField<unknown, unknown, unknown>) {
+    return config.field ? resolver.name === config.field : true
+  }
+
+  queries.filter(specific).map(resolver => generateTest(resolver, false, config));
+  mutations.filter(specific).map(resolver => generateTest(resolver, true, config));
 
   return mutations.length + queries.length;
 }

@@ -5,7 +5,7 @@ import type {
   GraphQLInputType,
   GraphQLInterfaceType,
   GraphQLOutputType,
-  GraphQLUnionType,
+  GraphQLUnionType
 } from 'graphql';
 import {
   GraphQLEnumType,
@@ -13,12 +13,12 @@ import {
   GraphQLList,
   GraphQLNonNull,
   GraphQLObjectType,
-  GraphQLScalarType,
+  GraphQLScalarType
 } from 'graphql';
 import {
   DEFAULT_VERSION,
   DEFAULT_VERSION_INCREMENT,
-  MAX_DEPTH,
+  MAX_DEPTH
 } from '../constants';
 
 type TField =
@@ -69,7 +69,7 @@ function getValueBasedOnScalar(type: GraphQLScalarType) {
     case 'ID':
       return '"3dea8772-3595-46f7-8520-4ce2cfff6d62"';
     case 'DateTime':
-      return `${new Date()}`;
+      return `"${new Date().toISOString()}"`;
     default:
       return 'null';
   }
@@ -107,9 +107,8 @@ function getValueBasedOnType(type: GraphQLInputType, depth = 0): string {
 
     return `{\n    ${Object.values(type.getFields())
       .map(field => {
-        return `${depth >= 2 ? duplicate('  ', depth) : '  '}${
-          field.name
-        }: ${getValueBasedOnType(field.type, depth)}`;
+        return `${depth >= 2 ? duplicate('  ', depth) : '  '}${field.name
+          }: ${getValueBasedOnType(field.type, depth)}`;
       })
       .join(',\n    ')}\n${duplicate('  ', depth + 1)}}`;
   }
@@ -147,9 +146,8 @@ function getFieldsBasedOnType(
         const row = getFieldsBasedOnType(field.type, depth, maxDepth);
 
         if (row != null) {
-          return `${depth >= 2 ? duplicate('  ', depth - 1) : ''}${
-            field.name
-          } ${row}`;
+          return `${depth >= 2 ? duplicate('  ', depth - 1) : ''}${field.name
+            } ${row}`;
         }
 
         return '';
@@ -185,8 +183,7 @@ function getInputs(args: readonly GraphQLArgument[], main: boolean) {
 
   return `(${args.map(
     arg =>
-      `${main ? '$' : ''}${arg.name}: ${!main ? '$' : ''}${
-        !main ? arg.name : arg.type
+      `${main ? '$' : ''}${arg.name}: ${!main ? '$' : ''}${!main ? arg.name : arg.type
       }`
   )})`;
 }

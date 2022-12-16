@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
-import { Command, InvalidArgumentError, Option } from 'commander';
+import { Command, InvalidArgumentError } from 'commander';
 import fs from 'fs';
 import { getConfig, initConfig } from './config';
 import generator from './generator/generator';
-import type { Options, TClearOptions } from './types/cli';
+import type { Options } from './types/cli';
 
 const program = new Command('graphql-testgen');
 
@@ -17,6 +17,10 @@ program
 
 program
   .command('gen')
+  .option(
+    '-f, --field <path>',
+    'specific query or mutation name'
+  )
   .option(
     '-c, --config <path>',
     'path to config file',
@@ -50,27 +54,6 @@ program
     const generatedTests = await generator(getConfig());
 
     console.log('Tests generated! 🎉\n Total: ' + generatedTests);
-  });
-
-program
-  .command('clear')
-  .option('-t, --test <name>', 'path to test file')
-  .addOption(new Option('-a, --all', 'delete all in config path'))
-  .action((options: TClearOptions) => {
-    initConfig();
-    const path = process.cwd() + '/' + getConfig().output;
-
-    if (Boolean(options.all)) {
-      if (fs.existsSync(path)) {
-        fs.rmSync(path, { recursive: true });
-      }
-    } else {
-      const filePath = path + '/' + options.test;
-
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
-    }
   });
 
 program.parse();
