@@ -7,8 +7,18 @@ Based on your schema.
 ## Commands
 
 ```
-graphql-testgen -g
+graphql-testgen gen 
 ```
+
+## Arguments
+| flags | arguments | alias | description |
+|---|---|---|---|
+| --config | path | -c | Path to config file an example is displayed at Configuration<br><br>usage: `-c __tests__/api/testgen.js`<br>default: `./testgen.js` |
+| --schema | <path> | -s | path to schema file or url path to schema<br><br>usage: `-s __tests__/api/schema.graphql`<br>default: `http://localhost:3000/graphql` |
+| --output | <path> | -o | path to output<br><br>usage: `-o __tests__/generated/`<br>default: `__tests__/generated/` |
+| --mocks | -m | <path> | path to mocks <br><br>usage: `-m __test__/mocks`<br>default: `__tests__/api/mocks` | 
+| --append | -a | - | append to existing files <br><br>usage: `-a`<br>default: false | 
+
 
 ## Configuration
 
