@@ -18,7 +18,7 @@ function generateTest(
   isMutation = true,
   config: TConfigOptions
 ) {
-  const { append, depth, mocks, output } = config;
+  const { append, depth, output } = config;
   const fields = getReturnTypeFields(resolver.type);
 
   let graphqlField = '';
@@ -28,7 +28,7 @@ function generateTest(
     ${getQueryFields(fields, depth)}
     }`;
   }
-  
+
   const variables = getQueryArgs(resolver.args)
 
   const generatedTest = generateOutput({

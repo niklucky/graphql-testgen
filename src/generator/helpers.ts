@@ -5,7 +5,7 @@ import type {
   GraphQLInputType,
   GraphQLInterfaceType,
   GraphQLOutputType,
-  GraphQLUnionType,
+  GraphQLUnionType
 } from 'graphql';
 import {
   GraphQLEnumType,
@@ -13,12 +13,12 @@ import {
   GraphQLList,
   GraphQLNonNull,
   GraphQLObjectType,
-  GraphQLScalarType,
+  GraphQLScalarType
 } from 'graphql';
 import {
   DEFAULT_VERSION,
   DEFAULT_VERSION_INCREMENT,
-  MAX_DEPTH,
+  MAX_DEPTH
 } from '../constants';
 
 type TField =
@@ -34,15 +34,15 @@ function getValueBasedOnScalar(type: GraphQLScalarType) {
     case 'String':
       return '"test"';
     case 'Int':
-      return '0';
+      return '1';
     case 'Float':
-      return '0.0';
+      return '1.0';
     case 'Boolean':
-      return 'false';
+      return 'true';
     case 'ID':
-      return '"test"';
+      return '"3dea8772-3595-46f7-8520-4ce2cfff6d62"';
     case 'DateTime':
-      return '"2021-01-01T00:00:00.000Z"';
+      return `${new Date()}`;
     default:
       return 'null';
   }
@@ -80,9 +80,8 @@ function getValueBasedOnType(type: GraphQLInputType, depth = 0): string {
 
     return `{\n    ${Object.values(type.getFields())
       .map(field => {
-        return `${depth >= 2 ? duplicate('  ', depth ) : ''}${
-          field.name
-        }: ${getValueBasedOnType(field.type)}`;
+        return `${depth >= 2 ? duplicate('  ', depth) : ''}${field.name
+          }: ${getValueBasedOnType(field.type)}`;
       })
       .join(',\n      ')}\n${duplicate('  ', depth)}}`;
   }
@@ -120,9 +119,8 @@ function getFieldsBasedOnType(
         const row = getFieldsBasedOnType(field.type, depth, maxDepth);
 
         if (row != null) {
-          return `${depth >= 2 ? duplicate('  ', depth - 1) : ''}${
-            field.name
-          } ${row}`;
+          return `${depth >= 2 ? duplicate('  ', depth - 1) : ''}${field.name
+            } ${row}`;
         }
 
         return '';
@@ -158,14 +156,16 @@ function getInputs(args: readonly GraphQLArgument[], main: boolean) {
 
   return `(${args.map(
     arg =>
-      `${main ? '$' : ''}${arg.name}: ${!main ? '$' : ''}${
-        !main ? arg.name : arg.type
+      `${main ? '$' : ''}${arg.name}: ${!main ? '$' : ''}${!main ? arg.name : arg.type
       }`
   )})`;
 }
 
 function writeFile(source: string, text: string, append: boolean) {
-  if (fs.existsSync(source) && append) {
+  if (fs.existsSync(source)) {
+    if (!append) {
+      return
+    }
     while (fs.existsSync(source)) {
       if (!source.match(/(\d+)(?!.*\d)/g)) {
         const splited = source.split('/');

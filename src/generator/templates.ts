@@ -28,17 +28,19 @@ const templates = {
   body: (data: TGenerateBody) => `
 const { client } = require('graphql-testgen')
 
-const data = {
-  ${data.data
-  .map(item => {
+const variables = global.mockFactory.variables(
+  '${data.resolverName}',
+  {
+  ${data.data.map(item => {
     if (item) {
-      return `${item[0]}: ${item[1]},`;
+      return `  ${item[0]}: ${item[1]},`;
     }
 
     return '';
   })
-  .join('')}
-}
+      .join('')}
+  }
+)
 const body = { 
   "query": 
 \`
@@ -46,13 +48,21 @@ ${data.queryType} ${data.resolverName}${data.inputs} {
   ${data.resolverName} ${data.outputInputs}${data.output}
   }
   \`,
-  ${data.data.length > 0 ? '"variables": data' : ''}
+  ${data.data.length > 0 ? 'variables' : ''}
 }
 
-test('${data.resolverName} query', async () => {
-  const response = await client.post(body)
+test('${data.queryType}:${data.resolverName}', async () => {
+  const response = await client.post(body, undefined, global.headers);
+  const testOverride = global.mockFactory.test('${data.resolverName}');
+  const expected = global.mockFactory.expected('${data.resolverName}', variables);
+
+  if (testOverride) {
+    testOverride(response, expected, expect);
+    return;
+  }
+
   expect(response.status).toBe(200)
-  expect(response.data.data.${data.resolverName}).toMatchObject(data)
+  expect(response.data.data.${data.resolverName}).toMatchObject(expected)
 })
   `,
 };
