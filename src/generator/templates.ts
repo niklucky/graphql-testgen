@@ -57,7 +57,8 @@ ${data.queryType} ${data.resolverName}${data.inputs} {
 }
 
 test('${data.queryType}:${data.resolverName}', async () => {
-  const response = await client.post(body, undefined, global.headers);
+  const response = await client.post(body, undefined, global.headers)
+  .catch(e => console.error('${data.resolverName} request error: ', e.response.data));
   const testOverride = mockFactory.test('${data.resolverName}');
   const expected = mockFactory.expected('${data.resolverName}');
 
