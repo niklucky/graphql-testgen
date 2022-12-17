@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { initConfig } from "../config";
-import type { TConfigOptions } from "../types/cli";
+import type { TConfigOptions, TResponse } from "../types/cli";
 
 type GraphqlMock = {
   variables: Record<string, unknown>,
@@ -66,13 +66,13 @@ function init() {
   return mockFactory
 }
 
-function data(resolverName: string, response: any) {
+function data(resolverName: string, response: TResponse, overwriteSnapshot = false) {
   try {
     const data = response.data.data[resolverName]
     const config = initConfig()
 
-    if (config.snapshots) {
-      saveSnapshot(config, resolverName, data)
+    if (config.snapshots && config.snapshots.path) {
+      saveSnapshot(config, resolverName, data, overwriteSnapshot)
     }
 
     return data
@@ -85,10 +85,13 @@ function data(resolverName: string, response: any) {
 
 }
 
-function saveSnapshot(config: TConfigOptions, resolverName: string, data: unknown) {
-  const path = process.cwd() + '/' + config.snapshots + '/' + resolverName + '.js'
+function saveSnapshot(config: TConfigOptions, resolverName: string, data: unknown, overwriteSnapshot = false) {
+  const path = process.cwd() + '/' + config.snapshots.path + '/' + resolverName + '.js'
 
-  if (!fs.existsSync(path)) {
+  if (!fs.existsSync(path) || overwriteSnapshot) {
+    if (config.snapshots.ignoreFields && config.snapshots.ignoreFields.length) {
+      data = removeFields(data, config.snapshots.ignoreFields)
+    }
     const snapshot = `module.exports = {
   expected: ${JSON.stringify(data, null, 2)}
 };
@@ -97,6 +100,24 @@ function saveSnapshot(config: TConfigOptions, resolverName: string, data: unknow
     fs.writeFileSync(path, snapshot)
   }
 
+}
+
+function removeFields(data: any, ignoreFields: string[]) {
+  Object.keys(data).forEach((key: any) => {
+    if (ignoreFields.includes(key)) {
+      delete data[key]
+
+      return
+    }
+    if (data[key] === null) {
+      return
+    }
+    if (typeof data[key] === 'object') {
+      data[key] = removeFields(data[key], ignoreFields)
+    }
+  })
+
+  return data
 }
 
 const mockFactory = {
