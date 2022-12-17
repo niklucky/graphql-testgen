@@ -10,6 +10,7 @@ let config: TConfigOptions = {
   mocks: {},
   depth: 4,
   append: false,
+  snapshots: '',
 };
 
 export function initConfig(options?: Options) {

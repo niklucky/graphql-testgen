@@ -1,4 +1,6 @@
+import fs from 'fs';
 import { initConfig } from "../config";
+import type { TConfigOptions } from "../types/cli";
 
 type GraphqlMock = {
   variables: Record<string, unknown>,
@@ -63,6 +65,40 @@ function init() {
 
   return mockFactory
 }
+
+function data(resolverName: string, response: any) {
+  try {
+    const data = response.data.data[resolverName]
+    const config = initConfig()
+
+    if (config.snapshots) {
+      saveSnapshot(config, resolverName, data)
+    }
+
+    return data
+  } catch (e) {
+    console.log(e)
+    console.error(`${resolverName} response error: ${JSON.stringify(response.data)}`)
+  }
+
+  return null
+
+}
+
+function saveSnapshot(config: TConfigOptions, resolverName: string, data: unknown) {
+  const path = process.cwd() + '/' + config.snapshots + '/' + resolverName + '.js'
+
+  if (!fs.existsSync(path)) {
+    const snapshot = `module.exports = {
+  expected: ${JSON.stringify(data, null, 2)}
+};
+`
+
+    fs.writeFileSync(path, snapshot)
+  }
+
+}
+
 const mockFactory = {
   init,
   get,
@@ -71,19 +107,7 @@ const mockFactory = {
   variables,
   expected,
   isInitialized,
+  data
 };
-
-// function load(path: string) {
-//   const files: string[] = [];
-
-//   files.forEach(fileName => {
-//     // eslint-disable-next-line @typescript-eslint/no-var-requires
-//     const data = require(fileName);
-
-//     for (const [resolverName, value] of Object.entries(data)) {
-//       mockFactory.set(resolverName, value as GraphqlMock);
-//     }
-//   });
-// }
 
 export { mockFactory };

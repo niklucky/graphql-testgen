@@ -59,21 +59,14 @@ ${data.queryType} ${data.resolverName}${data.inputs} {
 test('${data.queryType}:${data.resolverName}', async () => {
   const response = await client.post(body, undefined, global.headers);
   const testOverride = mockFactory.test('${data.resolverName}');
-  const expected = mockFactory.expected('${data.resolverName
-    }', variables);
+  const expected = mockFactory.expected('${data.resolverName}');
 
   if (testOverride) {
     testOverride(response, expected, expect);
     return;
   }
   
-  let data = null
-  try {
-    data = response.data.data.${data.resolverName}
-  } catch (e) {
-    console.log(e)
-    console.log('Response:', response.data)
-  }
+  const data = mockFactory.data('${data.resolverName}', response);
 
   expect(response.status).toBe(200)
   ${typeof data.output != 'string'

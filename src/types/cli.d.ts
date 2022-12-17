@@ -7,6 +7,7 @@ export type Options = {
   mocks?: Record<string, unknown>;
   depth?: number;
   append: boolean;
+  snapshots: string;
 };
 export type TConfigOptions = Required<Omit<Options, 'config' | 'field'>> & { field?: string };
 

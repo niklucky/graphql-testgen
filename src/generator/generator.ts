@@ -45,7 +45,7 @@ function generateTest(
   });
 
   writeFile(
-    `${output}${isMutation ? 'mutation' : 'query'}.${resolver.name}.test.js`,
+    `${output}${resolver.name}.test.js`,
     generatedTest,
     append
   );
