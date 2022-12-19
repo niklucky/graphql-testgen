@@ -1,17 +1,16 @@
 import fs from 'fs';
-import { initConfig } from "../config";
-import type { TConfigOptions, TResponse } from "../types/cli";
+import { initConfig } from '../config';
+import type { TConfigOptions, TResponse } from '../types/cli';
 
 type GraphqlMock = {
-  variables: Record<string, unknown>,
-  expected: Record<string, unknown>
-  test: (data: unknown) => void
-}
+  variables: Record<string, unknown>;
+  expected: Record<string, unknown>;
+  test: (data: unknown) => void;
+};
 
 let mockStorage: Map<string, GraphqlMock> = new Map();
 
-let isInitialized = false
-
+let isInitialized = false;
 
 function get(resolverName: string) {
   return mockStorage.get(resolverName);
@@ -20,7 +19,7 @@ function set(resolverName: string, value: GraphqlMock) {
   return mockStorage.set(resolverName, value);
 }
 function variables(resolverName: string, variables: Record<string, unknown>) {
-  init()
+  init();
 
   const mocks = mockFactory.get(resolverName)?.variables;
 
@@ -34,9 +33,10 @@ function variables(resolverName: string, variables: Record<string, unknown>) {
   };
 }
 function expected(resolverName: string, data: Record<string, unknown>) {
-  init()
+  init();
   const expected = mockFactory.get(resolverName)?.expected;
 
+  console.log(expected);
   if (!expected) {
     return data;
   }
@@ -47,77 +47,89 @@ function expected(resolverName: string, data: Record<string, unknown>) {
   };
 }
 function test(resolverName: string) {
-  init()
+  init();
 
   return mockFactory.get(resolverName)?.test;
 }
 
 function init() {
   if (isInitialized) {
-    return mockFactory
+    return mockFactory;
   }
-  const config = initConfig()
+  const config = initConfig();
 
   if (config.mocks) {
-    mockStorage = new Map(Object.entries(config.mocks as Record<string, GraphqlMock>))
+    mockStorage = new Map(
+      Object.entries(config.mocks as Record<string, GraphqlMock>)
+    );
   }
-  isInitialized = true
+  isInitialized = true;
 
-  return mockFactory
+  return mockFactory;
 }
 
-function data(resolverName: string, response: TResponse, overwriteSnapshot = false) {
+function data(
+  resolverName: string,
+  response: TResponse,
+  overwriteSnapshot = false
+) {
   try {
-    const data = response.data.data[resolverName]
-    const config = initConfig()
+    const data = response.data.data[resolverName];
+    const config = initConfig();
 
     if (config.snapshots && config.snapshots.path) {
-      saveSnapshot(config, resolverName, data, overwriteSnapshot)
+      saveSnapshot(config, resolverName, data, overwriteSnapshot);
     }
 
-    return data
+    return data;
   } catch (e) {
-    console.log(e)
-    console.error(`${resolverName} response error: ${JSON.stringify(response.data)}`)
+    console.log(e);
+    console.error(
+      `${resolverName} response error: ${JSON.stringify(response.data)}`
+    );
   }
 
-  return null
-
+  return null;
 }
 
-function saveSnapshot(config: TConfigOptions, resolverName: string, data: unknown, overwriteSnapshot = false) {
-  const path = process.cwd() + '/' + config.snapshots.path + '/' + resolverName + '.js'
+function saveSnapshot(
+  config: TConfigOptions,
+  resolverName: string,
+  data: unknown,
+  overwriteSnapshot = false
+) {
+  const path =
+    process.cwd() + '/' + config.snapshots.path + '/' + resolverName + '.js';
 
   if (!fs.existsSync(path) || overwriteSnapshot) {
     if (config.snapshots.ignoreFields && config.snapshots.ignoreFields.length) {
-      data = removeFields(data, config.snapshots.ignoreFields)
+      data = removeFields(data, config.snapshots.ignoreFields);
     }
     const snapshot = `module.exports = {
   expected: ${JSON.stringify(data, null, 2)}
 };
-`
+`;
 
-    fs.writeFileSync(path, snapshot)
+    fs.writeFileSync(path, snapshot);
   }
-
 }
 
 function removeFields(data: any, ignoreFields: string[]) {
   Object.keys(data).forEach((key: any) => {
     if (ignoreFields.includes(key)) {
-      delete data[key]
+      delete data[key];
 
-      return
+      return;
     }
     if (data[key] === null) {
-      return
+      return;
     }
     if (typeof data[key] === 'object') {
-      data[key] = removeFields(data[key], ignoreFields)
+      data[key] = removeFields(data[key], ignoreFields);
     }
-  })
+  });
 
-  return data
+  return data;
 }
 
 const mockFactory = {
@@ -128,7 +140,7 @@ const mockFactory = {
   variables,
   expected,
   isInitialized,
-  data
+  data,
 };
 
 export { mockFactory };

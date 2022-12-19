@@ -2,14 +2,14 @@
 
 import { Command, InvalidArgumentError } from 'commander';
 import fs from 'fs';
+import { version } from '../package.json';
 import { getConfig, initConfig } from './config';
 import generator from './generator/generator';
 import type { Options } from './types/cli';
-
 const program = new Command('graphql-testgen');
 
 program
-  .version('0.0.2')
+  .version(version)
   .description(
     'GraphQL Test Generator CLI Tool for Node.js and TypeScript projects with Jest support.'
   )
@@ -17,10 +17,7 @@ program
 
 program
   .command('gen')
-  .option(
-    '-f, --field <path>',
-    'specific query or mutation name'
-  )
+  .option('-f, --field <path>', 'specific query or mutation name')
   .option(
     '-c, --config <path>',
     'path to config file',
