@@ -36,9 +36,12 @@ function expected(resolverName: string, data: Record<string, unknown>) {
   init();
   const expected = mockFactory.get(resolverName)?.expected;
 
-  console.log(expected);
   if (!expected) {
     return data;
+  }
+
+  if (Array.isArray(expected)) {
+    return expected;
   }
 
   return {
@@ -71,6 +74,7 @@ function init() {
 function data(
   resolverName: string,
   response: TResponse,
+  ignoreFields: string[],
   overwriteSnapshot = false
 ) {
   try {
@@ -78,7 +82,7 @@ function data(
     const config = initConfig();
 
     if (config.snapshots && config.snapshots.path) {
-      saveSnapshot(config, resolverName, data, overwriteSnapshot);
+      saveSnapshot(config, resolverName, data, ignoreFields, overwriteSnapshot);
     }
 
     return data;
@@ -96,13 +100,17 @@ function saveSnapshot(
   config: TConfigOptions,
   resolverName: string,
   data: unknown,
+  ignoreFields: string[],
   overwriteSnapshot = false
 ) {
   const path =
     process.cwd() + '/' + config.snapshots.path + '/' + resolverName + '.js';
 
   if (!fs.existsSync(path) || overwriteSnapshot) {
-    if (config.snapshots.ignoreFields && config.snapshots.ignoreFields.length) {
+    ignoreFields = (config.snapshots.ignoreFields || []).concat(
+      ignoreFields || []
+    );
+    if (ignoreFields.length) {
       data = removeFields(data, config.snapshots.ignoreFields);
     }
     const snapshot = `module.exports = {
